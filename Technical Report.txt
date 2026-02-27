@@ -1,3 +1,6 @@
+## API Architecture
+- Uses FASTAPI
+
 ## Data Sources
 
 ### ESG and Financial Data
@@ -14,3 +17,5 @@
 - Initial dataset: 50 companies across 5 sectors (Technology, Finance, Energy, Healthcare, Consumer)
 - Data refreshed weekly via scheduled script
 - All data appropriately licensed for academic use per API terms of service
+
+### 
