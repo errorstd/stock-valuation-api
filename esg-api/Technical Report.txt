@@ -1,0 +1,65 @@
+## Web API Architecture
+- Stack: FastAPI + PostgreSQL
+-- API Choice: Automatic API docs generation (Swagger UI built-in)
+-- DB Choice: FastAPI via SQLAlchemy 
+- Auto Docs: Swagger
+
+
+## Data Sources
+
+### ESG and Financial Data
+- **FinancialModelingPrep API** (https://site.financialmodelingprep.com)
+  - Used to fetch ESG scores, carbon intensity, and controversy scores
+  - Free tier allows 250 requests/day
+  - Data ingested via `scripts/data_ingestion.py` and stored in PostgreSQL
+
+- **Yahoo Finance API** (via yfinance Python library)
+  - Used for historical stock prices and financial metrics (P/E, EPS)
+  - Data cached locally to reduce API calls
+
+### Data Processing
+- Initial dataset: 50 companies across 5 sectors (Technology, Finance, Energy, Healthcare, Consumer)
+- Data via scheduled script
+- All data appropriately licensed for academic use per API terms of service
+
+
+### GenAI Declaration
+Use of Generative AI in CourseWork 1 for COMP3011
+
+Generative AI is an Artificial Intelligence (AI) technology that automatically generates content in response to written prompts.
+As a general principle, at the University of Leeds you can use Gen AI to help you learn but cannot use AI to generate or falsify work.
+You should always analyse and verify the information Gen AI tools provide, rather than accepting it at face value.
+Whilst you may be given additional information about how Gen AI can complement your wider learning in this module, the use of Gen AI for this assessment has been categorised as:
+
+GREEN, which means AI has an integral role, and the use of AI tools is required as part of the assessment. You must also declare how AI was used for the assessment
+
+
+AI has been used in the process of:
+1. Defining:
+- (i) Idea Brainstorming: Used Generative AI to aid creative thinking in combine of personal pursuits and solution brainstorming
+ as a combination of Business and Tech with the ESG Sustainability module, to the final idea of building a data-driven ESG (Environmental, Social, Governance) investment analytics API
+
+2. Solution exploration
+- (i) Dataset Discovery: Utilize Perplexity research to scout existing metrics on Github for analytical scale and structure
+- (ii) Download and Explore: Uses Perplexity Research to ensure to connect Yfinance and FinancialModelingPrep(FMP) correctly and debugging,
+
+
+Challenges: No prior knowledge on Web API Architecture(FASTAPI, Django) and Infrastructure(PostgreSQL, MongoDB).
+Testing approach:
+1. Define KPI metrics for the 
+1. Asking AI for the complete architecture plan. 
+2. Building Overview files
+3. Testing API connections with Database
+4. Generate Reports Result
+5. Fine tuning and bu-fixing
+
+Lessons learned: FASTAPI Infrastrucuture, Using AI to foster problem-solving and to build a clean and comprehensive system architecture
+
+Limitations:
+- Account limitation on the amounts of API call with the free plan for more advanced call
+- Tight deadline
+- Limited Technical background and open-sourcess resoruces online
+
+Potential areas for improvement:
+- More structured approach at the start (Prevent wasting so much time)
+- 
