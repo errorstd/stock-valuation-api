@@ -1,0 +1,59 @@
+Full name (Purpose):
+A data-driven ESG (Environmental, Social, Governance) investment analytics API that helps portfolio managers and ESG analysts query company metrics, analyze performance, and make informed decisions.
+
+## Why did I pursue in such project?
+- Pain: No centralised API to query company ESG metrics + financial data + portfolio-level KPIs
+- Client: Portfolio manager / ESG analyst (like yourself at HKU Business School CIM)
+
+
+## ESG-Score-Integration (What features do I wish to include?)
+
+
+
+## How It Works: (What did I use to measure the KPI)
+
+KPIs that matter:
+- Portfolio average ESG score, carbon intensity
+- Top/bottom performers by ESG trend
+- Sector ESG distribution
+- Controvery Score (Risk Flags)
+- Financial vs ESG correlation (P/E, EPS vs ESG score)
+
+
+## Files & Data Folders: (How did I make the magic happens?)
+esg-api/
+├── app/
+│   ├── __init__.py
+│   ├── main.py              # FastAPI app entry point
+│   ├── models.py            # SQLAlchemy models
+│   ├── schemas.py           # Pydantic models
+│   ├── database.py          # DB connection
+│   ├── routers/
+│   │   ├── __init__.py
+│   │   ├── companies.py     # Company CRUD
+│   │   ├── analytics.py     # KPI endpoints
+│   └── exceptions.py        # Custom exceptions
+├── scripts/
+│   ├── data_import.py       # Data ingestion
+│   ├── init_db.py           # Database initialization
+├── tests/
+│   ├── __init__.py
+│   ├── test_api.py          # API tests
+│   ├── test_analytics.py    # Analytics tests
+├── notebooks/
+│   └── data_exploration.ipynb
+├── data/
+│   └── .gitkeep             # Track empty folder
+├── .env.example             # Example environment variables
+├── .gitignore               # Ignore venv, .env, __pycache__
+├── requirements.txt         # Python dependencies
+├── README.md                # Setup instructions
+├── API_Documentation.pdf    # Exported Swagger docs
+└── Technical_Report.pdf     # Your 5-page report
+
+
+
+## Summary
+- Growth Expectation [+10 ESG score -> x1.8 EV/EBITA]
+- Strategy Implementation [SLL -> (CSR) -> QoL(LT investment)]
+

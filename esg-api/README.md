@@ -15,3 +15,6 @@ cd esg-api
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+
+ESG Investment Search API:
+curl "https://financialmodelingprep.com/stable/esg-environmental-social-governance-data?symbol=AAPL&apikey=qj0a0JowZ8d1jpQxFDjyHRfjUkGvaWIu"
