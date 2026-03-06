@@ -1,18 +1,24 @@
 """
-Data import script using FREE Yahoo Finance ESG data
-No API keys required!
+Stock Valuation & Risk Analytics Data Import
+Focuses on RELIABLE Yahoo Finance data (no ESG dependency)
 """
 
-import yesg
+import sys
+import os
+
+# Add parent directory to Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import yfinance as yf
 import pandas as pd
+import numpy as np
 from sqlalchemy.orm import Session
 from datetime import datetime, date, timedelta
-from app.database import SessionLocal, engine
-from app.models import Company, ESGScore, FinancialMetric, StockPrice
+from app.database import SessionLocal
+from app.models import Company, FinancialMetric, StockPrice
 import time
 
-# List of companies across different sectors (50 companies)
+# 50 companies across sectors (ESG removed - financial data only)
 COMPANIES = {
     'Technology': ['AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA', 'TSLA', 'AMD', 'INTC', 'CRM', 'ORCL'],
     'Finance': ['JPM', 'BAC', 'WFC', 'GS', 'MS', 'C', 'AXP', 'BLK', 'SCHW', 'USB'],
@@ -21,25 +27,33 @@ COMPANIES = {
     'Consumer': ['AMZN', 'WMT', 'HD', 'PG', 'KO', 'PEP', 'COST', 'NKE', 'MCD', 'SBUX']
 }
 
+def convert_numpy(value):
+    """Convert numpy types to Python native types"""
+    if value is None or pd.isna(value):
+        return None
+    if isinstance(value, (np.integer, np.floating)):
+        return float(value)
+    if isinstance(value, np.ndarray):
+        return value.item()
+    return value
+
 def import_company_data(symbol: str, sector: str, db: Session):
     """Import company basic information"""
     try:
         ticker = yf.Ticker(symbol)
         info = ticker.info
         
-        # Check if company already exists
         existing = db.query(Company).filter(Company.symbol == symbol).first()
         if existing:
             print(f"  ⏭️  {symbol} already exists, skipping...")
             return existing
         
-        # Create company record
         company = Company(
             symbol=symbol,
             name=info.get('longName', symbol),
             sector=sector,
             industry=info.get('industry', 'Unknown'),
-            market_cap=info.get('marketCap', 0)
+            market_cap=convert_numpy(info.get('marketCap', 0))
         )
         
         db.add(company)
@@ -51,64 +65,15 @@ def import_company_data(symbol: str, sector: str, db: Session):
         
     except Exception as e:
         print(f"  ❌ Error importing {symbol}: {e}")
+        db.rollback()
         return None
 
-def import_esg_data(symbol: str, company_id: int, db: Session):
-    """Import ESG scores from Yahoo Finance (FREE!)"""
-    try:
-        # Get ESG data using yesg library
-        esg_data = yesg.get_esg_full(symbol)
-        
-        if esg_data is None or esg_data.empty:
-            print(f"    ⚠️  No ESG data available for {symbol}")
-            return
-        
-        # Extract ESG scores
-        total_score = esg_data.get('Total-Score', [None])[0]
-        env_score = esg_data.get('E-Score', [None])[0]
-        social_score = esg_data.get('S-Score', [None])[0]
-        gov_score = esg_data.get('G-Score', [None])[0]
-        
-        # Get controversy score if available
-        controversy = esg_data.get('Highest Controversy', [0])[0]
-        
-        # Check if ESG data already exists
-        existing = db.query(ESGScore).filter(
-            ESGScore.company_id == company_id,
-            ESGScore.date == date.today()
-        ).first()
-        
-        if existing:
-            print(f"    ⏭️  ESG data for {symbol} already exists")
-            return
-        
-        # Create ESG score record
-        esg_score = ESGScore(
-            company_id=company_id,
-            environmental_score=float(env_score) if env_score else None,
-            social_score=float(social_score) if social_score else None,
-            governance_score=float(gov_score) if gov_score else None,
-            total_esg_score=float(total_score) if total_score else None,
-            carbon_intensity=None,  # Not available in free tier
-            controversy_score=float(controversy) if controversy else 0.0,
-            date=date.today()
-        )
-        
-        db.add(esg_score)
-        db.commit()
-        
-        print(f"    ✅ ESG scores imported for {symbol}")
-        
-    except Exception as e:
-        print(f"    ❌ Error importing ESG for {symbol}: {e}")
-
 def import_financial_data(symbol: str, company_id: int, db: Session):
-    """Import financial metrics from Yahoo Finance"""
+    """Import comprehensive financial metrics"""
     try:
         ticker = yf.Ticker(symbol)
         info = ticker.info
         
-        # Check if financial data already exists
         existing = db.query(FinancialMetric).filter(
             FinancialMetric.company_id == company_id,
             FinancialMetric.date == date.today()
@@ -118,42 +83,39 @@ def import_financial_data(symbol: str, company_id: int, db: Session):
             print(f"    ⏭️  Financial data for {symbol} already exists")
             return
         
-        # Create financial metrics record
         financial = FinancialMetric(
             company_id=company_id,
-            pe_ratio=info.get('trailingPE'),
-            eps=info.get('trailingEps'),
-            revenue=info.get('totalRevenue'),
-            profit_margin=info.get('profitMargins'),
-            debt_to_equity=info.get('debtToEquity'),
+            pe_ratio=convert_numpy(info.get('trailingPE')),
+            eps=convert_numpy(info.get('trailingEps')),
+            revenue=convert_numpy(info.get('totalRevenue')),
+            profit_margin=convert_numpy(info.get('profitMargins')),
+            debt_to_equity=convert_numpy(info.get('debtToEquity')),
             date=date.today()
         )
         
         db.add(financial)
         db.commit()
         
-        print(f"    ✅ Financial data imported for {symbol}")
+        print(f"    ✅ Financial metrics imported for {symbol}")
         
     except Exception as e:
         print(f"    ❌ Error importing financials for {symbol}: {e}")
+        db.rollback()
 
 def import_stock_prices(symbol: str, company_id: int, db: Session):
-    """Import recent stock price data"""
+    """Import 90 days of historical price data"""
     try:
         ticker = yf.Ticker(symbol)
-        
-        # Get last 30 days of price data
-        hist = ticker.history(period="1mo")
+        hist = ticker.history(period="3mo")  # 90 days for better analytics
         
         if hist.empty:
             print(f"    ⚠️  No price data for {symbol}")
             return
         
-        # Import each day's data
+        imported_count = 0
         for index, row in hist.iterrows():
             price_date = index.date()
             
-            # Check if already exists
             existing = db.query(StockPrice).filter(
                 StockPrice.company_id == company_id,
                 StockPrice.date == price_date
@@ -165,29 +127,32 @@ def import_stock_prices(symbol: str, company_id: int, db: Session):
             stock_price = StockPrice(
                 company_id=company_id,
                 date=price_date,
-                open=row['Open'],
-                close=row['Close'],
+                open=float(row['Open']),
+                close=float(row['Close']),
                 volume=int(row['Volume'])
             )
             
             db.add(stock_price)
+            imported_count += 1
         
         db.commit()
-        print(f"    ✅ Stock prices imported for {symbol}")
+        print(f"    ✅ Stock prices imported for {symbol} ({imported_count} days)")
         
     except Exception as e:
         print(f"    ❌ Error importing prices for {symbol}: {e}")
+        db.rollback()
 
 def run_full_import():
     """Run complete data import"""
-    db = SessionLocal()
     
-    print("\n" + "="*60)
-    print("🚀 Starting ESG Data Import (FREE Yahoo Finance Data)")
-    print("="*60 + "\n")
+    print("\n" + "="*70)
+    print("🚀 Stock Valuation & Risk Analytics - Data Import")
+    print("="*70 + "\n")
     
     total_companies = sum(len(symbols) for symbols in COMPANIES.values())
     current = 0
+    successful = 0
+    failed = 0
     
     for sector, symbols in COMPANIES.items():
         print(f"\n📊 Importing {sector} sector...")
@@ -196,28 +161,36 @@ def run_full_import():
             current += 1
             print(f"\n[{current}/{total_companies}] Processing {symbol}...")
             
-            # Import company info
-            company = import_company_data(symbol, sector, db)
+            db = SessionLocal()
             
-            if company:
-                # Import ESG scores (FREE!)
-                import_esg_data(symbol, company.id, db)
+            try:
+                company = import_company_data(symbol, sector, db)
                 
-                # Import financial metrics
-                import_financial_data(symbol, company.id, db)
+                if company:
+                    import_financial_data(symbol, company.id, db)
+                    import_stock_prices(symbol, company.id, db)
+                    successful += 1
+                else:
+                    failed += 1
                 
-                # Import stock prices
-                import_stock_prices(symbol, company.id, db)
+            except Exception as e:
+                print(f"  ❌ Unexpected error for {symbol}: {e}")
+                failed += 1
+                db.rollback()
             
-            # Sleep to avoid rate limiting
-            time.sleep(1)
+            finally:
+                db.close()
+            
+            time.sleep(1.5)  # Rate limiting
     
-    db.close()
-    
-    print("\n" + "="*60)
+    print("\n" + "="*70)
     print("✅ Data import completed!")
-    print("="*60)
-    print(f"\nImported data for {total_companies} companies across 5 sectors")
+    print("="*70)
+    print(f"\n📈 Summary:")
+    print(f"   Total companies: {total_companies}")
+    print(f"   ✅ Successful: {successful}")
+    print(f"   ❌ Failed: {failed}")
+    print(f"\n🎯 Focus: Stock Valuation & Risk Analytics (Financial Data Only)")
 
 if __name__ == "__main__":
     run_full_import()

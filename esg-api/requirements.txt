@@ -1,7 +1,6 @@
 annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.12.1
-app==0.0.1
 beautifulsoup4==4.14.3
 certifi==2026.2.25
 cffi==2.0.0
@@ -33,6 +32,7 @@ Pygments==2.19.2
 pytest==9.0.2
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
+python-multipart==0.0.22
 pytz==2026.1.post1
 requests==2.32.5
 six==1.17.0
