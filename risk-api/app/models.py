@@ -1,68 +1,74 @@
 """
 SQLAlchemy Database Models
-Defines the structure of all database tables
 """
 
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, BigInteger
+from sqlalchemy import Column, Integer, String, Float, BigInteger, Date, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from app.database import Base  # ✅ Import Base from database.py
+from sqlalchemy.sql import func
+from app.database import Base
+
 
 class Company(Base):
-    """Company information table"""
+    """Company model - stores basic company information"""
     __tablename__ = "companies"
     
     id = Column(Integer, primary_key=True, index=True)
-    symbol = Column(String, unique=True, index=True, nullable=False)
-    name = Column(String, nullable=False)
-    sector = Column(String)
-    industry = Column(String)
-    market_cap = Column(BigInteger)
+    symbol = Column(String(10), unique=True, nullable=False, index=True)
+    name = Column(String(255), nullable=False)
+    sector = Column(String(100), nullable=True)
+    industry = Column(String(100), nullable=True)
     
-    # CASCADE DELETE - when company is deleted, delete all related records
-    esg_scores = relationship("ESGScore", back_populates="company", cascade="all, delete-orphan")
-    financial_metrics = relationship("FinancialMetric", back_populates="company", cascade="all, delete-orphan")
-    stock_prices = relationship("StockPrice", back_populates="company", cascade="all, delete-orphan")
+    # ✅ FIX: Use 'marketcap' (no underscore)
+    marketcap = Column(BigInteger, nullable=True)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships with CASCADE DELETE
+    financial_metrics = relationship(
+        "FinancialMetric",
+        back_populates="company",
+        cascade="all, delete-orphan"
+    )
+    
+    stock_prices = relationship(
+        "StockPrice",
+        back_populates="company",
+        cascade="all, delete-orphan"
+    )
 
-class ESGScore(Base):
-    """ESG scores and sustainability metrics"""
-    __tablename__ = "esg_scores"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False)
-    environmental_score = Column(Float)
-    social_score = Column(Float)
-    governance_score = Column(Float)
-    total_esg_score = Column(Float)
-    carbon_intensity = Column(Float)
-    controversy_score = Column(Float)
-    date = Column(Date, nullable=False)
-    
-    company = relationship("Company", back_populates="esg_scores")
 
 class FinancialMetric(Base):
-    """Financial performance metrics"""
+    """Financial metrics - P/E ratio, EPS, margins, etc."""
     __tablename__ = "financial_metrics"
     
     id = Column(Integer, primary_key=True, index=True)
     company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False)
-    pe_ratio = Column(Float)
-    eps = Column(Float)
-    revenue = Column(BigInteger)
-    profit_margin = Column(Float)
-    debt_to_equity = Column(Float)
+    
+    pe_ratio = Column(Float, nullable=True)
+    eps = Column(Float, nullable=True)
+    revenue = Column(BigInteger, nullable=True)
+    profit_margin = Column(Float, nullable=True)
+    debt_to_equity = Column(Float, nullable=True)
+    
     date = Column(Date, nullable=False)
     
+    # Relationship
     company = relationship("Company", back_populates="financial_metrics")
 
+
 class StockPrice(Base):
-    """Historical stock price data"""
+    """Stock price history"""
     __tablename__ = "stock_prices"
     
     id = Column(Integer, primary_key=True, index=True)
     company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False)
-    date = Column(Date, nullable=False)
+    
+    date = Column(Date, nullable=False, index=True)
     open = Column(Float, nullable=False)
     close = Column(Float, nullable=False)
-    volume = Column(BigInteger, nullable=False)
+    high = Column(Float, nullable=True)
+    low = Column(Float, nullable=True)
+    volume = Column(BigInteger, nullable=True)
     
+    # Relationship
     company = relationship("Company", back_populates="stock_prices")

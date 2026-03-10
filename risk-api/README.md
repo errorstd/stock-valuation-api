@@ -159,39 +159,41 @@ Manual Testing via Swagger UI
 
 ## 📚 API Documentation
 
-### Core Endpoints (22 Total)
+### Core Endpoints (27 Total)
 
 ### 🏢 Companies Management
-
 
 | Method | Endpoint                 | Description                                |
 | ------ | ------------------------ | ------------------------------------------ |
 | GET    | /companies/              | List all companies or get specific company |
-| POST   | /companies/              | Create company or bulk CSV upload          |
+| POST   | /companies/single        | Create a single company from JSON          |
+| POST   | /companies/bulk          | Bulk upload companies from CSV file        |
 | DELETE | /companies/{symbol}      | Delete specific company (CASCADE)          |
 | DELETE | /companies/?confirm=true | Delete all companies (CASCADE)             |
 
+### 🔄 Real-Time Updates **(NEW)**
+
+| Method | Endpoint                      | Description                                      |
+| ------ | ----------------------------- | ------------------------------------------------ |
+| PUT    | /companies/{symbol}/update    | Update single stock with real-time data          |
+| PUT    | /companies/update-all         | Bulk update multiple stocks (up to 50)           |
+| GET    | /companies/{symbol}/live      | Get live quote directly from Yahoo Finance       |
 
 ### 💰 Valuation Analytics
-
 
 | Method | Endpoint                         | Description                       |
 | ------ | -------------------------------- | --------------------------------- |
 | GET    | /analytics/valuation/undervalued | Find undervalued stocks (low P/E) |
 | GET    | /analytics/valuation/overvalued  | Find overvalued stocks (high P/E) |
 
-
 ### ⚠️ Risk Assessment
-
 
 | Method | Endpoint                            | Description                |
 | ------ | ----------------------------------- | -------------------------- |
 | GET    | /analytics/risk/volatility/{symbol} | Calculate stock volatility |
 | GET    | /analytics/risk/high-risk           | Identify high-risk stocks  |
 
-
 ### 📊 Portfolio & Sectors
-
 
 | Method | Endpoint                         | Description               |
 | ------ | -------------------------------- | ------------------------- |
@@ -199,9 +201,7 @@ Manual Testing via Swagger UI
 | GET    | /analytics/sectors/comparison    | Compare sectors           |
 | GET    | /sectors/                        | List all sectors          |
 
-
 ### 🔍 Browse & Search
-
 
 | Method | Endpoint               | Description                     |
 | ------ | ---------------------- | ------------------------------- |
@@ -212,9 +212,7 @@ Manual Testing via Swagger UI
 | GET    | /browse/green-energy   | Green/renewable energy stocks   |
 
 
-```bash
-curl "http://localhost:8000/analytics/portfolio/performance?symbols=AAPL,MSFT,GOOGL"
-```
+
 
 Example Usage
 Find Undervalued Stocks:

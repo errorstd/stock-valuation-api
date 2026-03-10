@@ -1,34 +1,34 @@
 """
-Database connection configuration
+Database Configuration
 """
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
+# Load environment variables
 load_dotenv()
 
 # Get database URL from environment
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:548654@localhost:5432/stock_api")
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL not found in environment variables")
 
 # Create engine
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,  # Verify connections before using
-    echo=False  # Set to True to see SQL queries (debugging)
-)
+engine = create_engine(DATABASE_URL)
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# ✅ CREATE BASE HERE (NOT IN MODELS.PY)
+# Base class for models
 Base = declarative_base()
 
-# Dependency for FastAPI routes
+
 def get_db():
-    """Dependency that provides a database session"""
+    """Dependency for database sessions"""
     db = SessionLocal()
     try:
         yield db

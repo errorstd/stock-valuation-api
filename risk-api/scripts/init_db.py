@@ -10,21 +10,20 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app.database import engine, Base
-from app.models import Company, ESGScore, FinancialMetric, StockPrice
+from app.models import Company, FinancialMetric, StockPrice  # ✅ REMOVED ESGScore
+
 
 def init_database():
     """Create all database tables"""
     try:
-        # Create engine
-        print("🗄️  Creating all database tables...")
+        print("Creating all database tables...")
         
         # Create all tables
         Base.metadata.create_all(bind=engine)
         
         print("✅ Database tables created successfully!")
-        print("\nCreated tables:")
+        print("\nTables created:")
         print("  - companies")
-        print("  - esg_scores")
         print("  - financial_metrics")
         print("  - stock_prices")
         
@@ -34,8 +33,10 @@ def init_database():
         print("1. Make sure PostgreSQL is running")
         print("2. Check your DATABASE_URL in .env file")
         print("3. Verify database 'esg_investment_db' exists")
+        
         import traceback
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     print("Initializing database...")
